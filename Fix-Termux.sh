@@ -526,6 +526,97 @@ install_wifi_tools() {
 # ПОДТВЕРЖДЕНИЕ И СТАТИСТИКА
 ################################################################################
 
+create_backup() {
+    local backup_dir="$HOME/fix-termux-backup-$(date +%Y%m%d-%H%M%S)"
+
+    echo -e "${cyan}📦 Создание backup...${reset}"
+
+    if [ "$DRY_RUN" = true ]; then
+        echo -e "${yellow}⊘ [DRY-RUN] Backup не создаётся${reset}"
+        return 0
+    fi
+
+    mkdir -p "$backup_dir" >> "$LOG_FILE" 2>&1
+
+    # Backup списков пакетов
+    echo -ne "  📋 pkg list... "
+    pkg list --installed 2>/dev/null > "$backup_dir/pkg-installed.txt" && echo -e "${green}✓${reset}" || echo -e "${red}✗${reset}"
+
+    echo -ne "  📋 apt list... "
+    apt list --installed 2>/dev/null > "$backup_dir/apt-installed.txt" && echo -e "${green}✓${reset}" || echo -e "${red}✗${reset}"
+
+    echo -ne "  📋 pip list... "
+    pip list 2>/dev/null > "$backup_dir/pip-installed.txt" && echo -e "${green}✓${reset}" || echo -e "${red}✗${reset}"
+
+    # Backup конфигов
+    echo -ne "  ⚙️  Конфиги... "
+    if [ -d "$HOME/.termux" ]; then
+        cp -r "$HOME/.termux" "$backup_dir/" 2>/dev/null && echo -e "${green}✓${reset}" || echo -e "${red}✗${reset}"
+    else
+        echo -e "${yellow}⊘${reset}"
+    fi
+
+    echo ""
+    echo -e "${green}✅ Backup создан: ${bold}${backup_dir}${reset}"
+    log_success "Backup создан: $backup_dir"
+
+    # Сохраняем путь к backup
+    LAST_BACKUP="$backup_dir"
+}
+
+install_packages_parallel() {
+    local -a packages=("$@")
+    local max_parallel=3
+    local count=0
+    local pids=()
+
+    echo -e "${cyan}🚀 Параллельная установка пакетов (${#packages[@]} шт, макс. параллельно: $max_parallel)...${reset}"
+    echo ""
+
+    for pkg in "${packages[@]}"; do
+        # Ждём, если достигнут лимит параллельных процессов
+        while [ ${#pids[@]} -ge $max_parallel ]; do
+            for pid in "${pids[@]}"; do
+                if ! kill -0 "$pid" 2>/dev/null; then
+                    wait "$pid"
+                    pids=("${pids[@]/$pid}")
+                fi
+            done
+            sleep 0.5
+        done
+
+        # Запускаем установку в фоне
+        (
+            if [ "$DRY_RUN" = true ]; then
+                echo -ne "[DRY-RUN] $pkg... ⊘\n"
+            else
+                echo -ne "📦 $pkg... "
+                if pkg install "$pkg" -y >> "$LOG_FILE" 2>&1; then
+                    echo -e "✓\n"
+                else
+                    echo -e "✗\n"
+                fi
+            fi
+        ) &
+
+        pids+=($!)
+        count=$((count + 1))
+
+        # Показываем прогресс
+        if [ $((count % 10)) -eq 0 ]; then
+            echo -e "${white}   Установлено: $count/${#packages[@]}${reset}"
+        fi
+    done
+
+    # Ждём завершения всех процессов
+    for pid in "${pids[@]}"; do
+        wait "$pid"
+    done
+
+    echo ""
+    echo -e "${green}✅ Параллельная установка завершена!${reset}"
+}
+
 confirm_and_install() {
     local option="$1"
     local option_name=""
@@ -568,6 +659,11 @@ confirm_and_install() {
 run_installation() {
     local option="$1"
 
+    # Создание backup перед установкой
+    if [ "$ENABLE_BACKUP" = true ] && [ "$DRY_RUN" = false ]; then
+        create_backup
+    fi
+
     # Сброс счётчиков перед установкой
     if [ "$DRY_RUN" = false ]; then
         PACKAGES_INSTALLED=0
@@ -587,6 +683,14 @@ run_installation() {
         8) install_web_scraping ;;
         9) install_wifi_tools ;;
     esac
+
+    # Показ статистики после установки
+    if [ "$DRY_RUN" = false ]; then
+        echo ""
+        echo -e "${green}✅ Установка завершена!${reset}"
+        echo -e "${white}   Пакетов установлено: ${PACKAGES_INSTALLED}${reset}"
+        echo -e "${red}   Ошибок: ${PACKAGES_FAILED}${reset}"
+    fi
 }
 
 show_settings() {
@@ -597,9 +701,10 @@ show_settings() {
     echo ""
     echo -e "  ${cyan}1${reset}) Тестовый режим (Dry Run):     ${yellow}${DRY_RUN}${reset}"
     echo -e "  ${cyan}2${reset}) Авто-подтверждение:           ${yellow}${AUTO_CONFIRM}${reset}"
+    echo -e "  ${cyan}3${reset}) Backup перед установкой:      ${yellow}${ENABLE_BACKUP}${reset}"
     echo ""
     echo -e "  ${white}Выберите настройку для переключения:${reset}"
-    echo -ne "  [1/2/B (назад)]: "
+    echo -ne "  [1/2/3/B (назад)]: "
     read setting
 
     case $setting in
@@ -621,6 +726,16 @@ show_settings() {
                 AUTO_CONFIRM=true
                 echo -e "${yellow}✅ Авто-подтверждение включено${reset}"
                 echo -e "${red}   Внимание: Установка начнётся сразу после выбора опции!${reset}"
+            fi
+            ;;
+        3)
+            if [ "$ENABLE_BACKUP" = true ]; then
+                ENABLE_BACKUP=false
+                echo -e "${green}✅ Backup выключен${reset}"
+            else
+                ENABLE_BACKUP=true
+                echo -e "${yellow}✅ Backup включен${reset}"
+                echo -e "${cyan}   Backup будет создаваться перед установкой${reset}"
             fi
             ;;
         [Bb])
@@ -681,6 +796,10 @@ COMMANDS_EXECUTED=0
 # Режимы
 DRY_RUN=false
 AUTO_CONFIRM=false
+ENABLE_BACKUP=true
+
+# Backup
+LAST_BACKUP=""
 
 ################################################################################
 # ОСНОВНАЯ ФУНКЦИЯ
