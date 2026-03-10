@@ -526,6 +526,134 @@ install_wifi_tools() {
 # ПОДТВЕРЖДЕНИЕ И СТАТИСТИКА
 ################################################################################
 
+restore_from_backup() {
+    local backup_dir="$1"
+
+    echo -e "${bold}${blue}📦 Восстановление из backup...${reset}"
+    echo ""
+
+    if [ ! -d "$backup_dir" ]; then
+        echo -e "${red}❌ Backup директория не найдена: $backup_dir${reset}"
+        return 1
+    fi
+
+    # Проверка файлов backup
+    if [ ! -f "$backup_dir/pkg-installed.txt" ]; then
+        echo -e "${red}❌ Файл pkg-installed.txt не найден${reset}"
+        return 1
+    fi
+
+    echo -e "${yellow}⚠️  Внимание: Это переустановит все пакеты из backup!${reset}"
+    echo -e "${white}   Это может занять много времени.${reset}"
+    echo ""
+    echo -ne "${green}   Продолжить? [y/N]: ${reset}"
+    read confirm
+
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        echo -e "${cyan}❌ Отменено пользователем${reset}"
+        return 0
+    fi
+
+    # Восстановление pkg пакетов
+    echo ""
+    echo -e "${yellow}📦 Восстановление pkg пакетов...${reset}"
+    if [ -f "$backup_dir/pkg-installed.txt" ]; then
+        local count=0
+        while IFS= read -r line; do
+            if [[ "$line" =~ ^pkg/ ]]; then
+                local pkg_name=$(echo "$line" | cut -d'/' -f2 | cut -d' ' -f1)
+                if [ -n "$pkg_name" ]; then
+                    echo -ne "  Installing $pkg_name... "
+                    if pkg install "$pkg_name" -y >> "$LOG_FILE" 2>&1; then
+                        echo -e "${green}✓${reset}"
+                        count=$((count + 1))
+                    else
+                        echo -e "${red}✗${reset}"
+                    fi
+                fi
+            fi
+        done < "$backup_dir/pkg-installed.txt"
+        echo -e "${green}✅ Установлено пакетов: $count${reset}"
+    fi
+
+    # Восстановление pip пакетов
+    echo ""
+    echo -e "${yellow}🐍 Восстановление pip пакетов...${reset}"
+    if [ -f "$backup_dir/pip-installed.txt" ]; then
+        local count=0
+        while IFS= read -r line; do
+            local pkg_name=$(echo "$line" | awk '{print $1}')
+            if [ -n "$pkg_name" ] && [[ ! "$pkg_name" =~ ^(Package|-----) ]]; then
+                echo -ne "  Installing $pkg_name... "
+                if pip install "$pkg_name" >> "$LOG_FILE" 2>&1; then
+                    echo -e "${green}✓${reset}"
+                    count=$((count + 1))
+                else
+                    echo -e "${red}✗${reset}"
+                fi
+            fi
+        done < "$backup_dir/pip-installed.txt"
+        echo -e "${green}✅ Установлено pip пакетов: $count${reset}"
+    fi
+
+    # Восстановление конфигов
+    echo ""
+    echo -e "${yellow}⚙️  Восстановление конфигов...${reset}"
+    if [ -d "$backup_dir/.termux" ]; then
+        cp -r "$backup_dir/.termux" "$HOME/" 2>/dev/null && echo -e "${green}✓${reset}" || echo -e "${red}✗${reset}"
+    else
+        echo -e "${yellow}⊘ Конфиги не найдены${reset}"
+    fi
+
+    echo ""
+    echo -e "${green}✅ Восстановление завершено!${reset}"
+    echo -e "${white}   Рекомендуется перезапустить Termux.${reset}"
+    log_success "Восстановление из backup: $backup_dir"
+}
+
+list_backups() {
+    echo ""
+    echo -e "${bold}${blue}📦 Доступные backup:${reset}"
+    echo ""
+
+    local backups=($(ls -dt $HOME/fix-termux-backup-* 2>/dev/null))
+
+    if [ ${#backups[@]} -eq 0 ]; then
+        echo -e "${yellow}⊘ Backup не найдены${reset}"
+        return
+    fi
+
+    local i=1
+    for backup in "${backups[@]}"; do
+        local backup_name=$(basename "$backup")
+        local backup_date=$(echo "$backup_name" | sed 's/fix-termux-backup-//')
+        echo -e "  ${green}$i${reset}) ${cyan}$backup_name${reset} — $backup_date"
+
+        # Показываем размер
+        if [ -f "$backup/pkg-installed.txt" ]; then
+            local pkg_count=$(wc -l < "$backup/pkg-installed.txt")
+            echo -e "     📦 Пакетов: $pkg_count"
+        fi
+
+        i=$((i + 1))
+    done
+
+    echo ""
+    echo -ne "${white}Выберите backup для восстановления (0 для отмены): ${reset}"
+    read choice
+
+    if [ "$choice" = "0" ]; then
+        return
+    fi
+
+    local selected=$((choice - 1))
+    if [ $selected -ge 0 ] && [ $selected -lt ${#backups[@]} ]; then
+        restore_from_backup "${backups[$selected]}"
+    else
+        echo -e "${red}❌ Неверный выбор${reset}"
+    fi
+}
+
 create_backup() {
     local backup_dir="$HOME/fix-termux-backup-$(date +%Y%m%d-%H%M%S)"
 
@@ -702,9 +830,10 @@ show_settings() {
     echo -e "  ${cyan}1${reset}) Тестовый режим (Dry Run):     ${yellow}${DRY_RUN}${reset}"
     echo -e "  ${cyan}2${reset}) Авто-подтверждение:           ${yellow}${AUTO_CONFIRM}${reset}"
     echo -e "  ${cyan}3${reset}) Backup перед установкой:      ${yellow}${ENABLE_BACKUP}${reset}"
+    echo -e "  ${cyan}4${reset}) 🔄 Восстановление из backup   ${white}— Откат изменений${reset}"
     echo ""
     echo -e "  ${white}Выберите настройку для переключения:${reset}"
-    echo -ne "  [1/2/3/B (назад)]: "
+    echo -ne "  [1/2/3/4/B (назад)]: "
     read setting
 
     case $setting in
@@ -737,6 +866,9 @@ show_settings() {
                 echo -e "${yellow}✅ Backup включен${reset}"
                 echo -e "${cyan}   Backup будет создаваться перед установкой${reset}"
             fi
+            ;;
+        4)
+            list_backups
             ;;
         [Bb])
             return
