@@ -6,6 +6,39 @@
 
 ---
 
+## [3.4] - 2026-03-11
+
+### ✨ Новые возможности v3.4
+
+#### Bluetooth LE Tools (опция 16)
+
+**📡 Bluetooth LE (Low Energy) Tools**:
+- **Основные BLE инструменты:** gatttool, hcitool, btmgmt, bluez-deprecated
+- **BLE сканеры и анализаторы:** bleah, gattlib, pygatt
+- **Python BLE библиотеки:** bluepy, bleak (кроссплатформенный), bleson
+- **Специализированные инструменты:** nrfutil (Nordic SDK), microbit (BBC micro:bit)
+- **Утилиты:** Espruino IDE
+
+**🔧 Возможности:**
+- Сканирование BLE устройств (hcitool lescan)
+- Подключение к GATT серверам
+- Чтение/запись характеристик
+- Анализ BLE рекламы
+- Работа с Nordic nRF устройствами
+- Программирование BBC micro:bit
+- Кроссплатформенная разработка (bleak)
+
+**📝 Примечание:** Требуется root и BLE адаптер
+
+**📖 Основные команды:**
+```bash
+gatttool -I           # Интерактивный режим
+hcitool lescan        # Сканирование BLE устройств
+btmgmt info           # Информация о Bluetooth адаптере
+```
+
+---
+
 ## [3.3] - 2026-03-11
 
 ### ✨ Новые возможности v3.3
