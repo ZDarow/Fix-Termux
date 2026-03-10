@@ -116,9 +116,16 @@ print_banner() {
 install_package() {
     local pkg="$1"
     local manager="$2"
-    
+
+    # Тестовый режим
+    if [ "$DRY_RUN" = true ]; then
+        echo -ne "${cyan}📦 [DRY-RUN] Установка ${yellow}${pkg}${reset}... "
+        echo -e "${yellow}⊘${reset}"
+        return 0
+    fi
+
     echo -ne "${cyan}📦 Установка ${yellow}${pkg}${reset}... "
-    
+
     if [ "$manager" = "pkg" ]; then
         pkg install "$pkg" -y >> "$LOG_FILE" 2>&1
     elif [ "$manager" = "apt" ]; then
@@ -128,13 +135,15 @@ install_package() {
     elif [ "$manager" = "gem" ]; then
         gem install "$pkg" >> "$LOG_FILE" 2>&1
     fi
-    
+
     if [ $? -eq 0 ]; then
         echo -e "${green}✓${reset}"
+        PACKAGES_INSTALLED=$((PACKAGES_INSTALLED + 1))
         log_success "Установлен пакет: $pkg ($manager)"
         return 0
     else
         echo -e "${red}✗${reset}"
+        PACKAGES_FAILED=$((PACKAGES_FAILED + 1))
         log_error "Ошибка установки пакета: $pkg ($manager)"
         return 1
     fi
@@ -143,11 +152,19 @@ install_package() {
 clone_repo() {
     local url="$1"
     local name="$2"
-    
+
+    # Тестовый режим
+    if [ "$DRY_RUN" = true ]; then
+        echo -ne "${cyan}📥 [DRY-RUN] Клонирование ${yellow}${name}${reset}... "
+        echo -e "${yellow}⊘${reset}"
+        return 0
+    fi
+
     echo -ne "${cyan}📥 Клонирование ${yellow}${name}${reset}... "
-    
+
     if git clone "$url" >> "$LOG_FILE" 2>&1; then
         echo -e "${green}✓${reset}"
+        REPOS_CLONED=$((REPOS_CLONED + 1))
         log_success "Склонирован репозиторий: $name"
         return 0
     else
@@ -160,11 +177,19 @@ clone_repo() {
 run_command() {
     local cmd="$1"
     local description="$2"
-    
+
+    # Тестовый режим
+    if [ "$DRY_RUN" = true ]; then
+        echo -ne "${cyan}⚙️  [DRY-RUN] ${description}${reset}... "
+        echo -e "${yellow}⊘${reset}"
+        return 0
+    fi
+
     echo -ne "${cyan}⚙️  ${description}${reset}... "
-    
+
     if eval "$cmd" >> "$LOG_FILE" 2>&1; then
         echo -e "${green}✓${reset}"
+        COMMANDS_EXECUTED=$((COMMANDS_EXECUTED + 1))
         log_success "Выполнено: $description"
         return 0
     else
@@ -498,12 +523,200 @@ install_wifi_tools() {
 }
 
 ################################################################################
-# МЕНЮ
+# ПОДТВЕРЖДЕНИЕ И СТАТИСТИКА
 ################################################################################
 
-show_menu() {
+confirm_and_install() {
+    local option="$1"
+    local option_name=""
+
+    # Получаем название опции
+    case $option in
+        1) option_name="Linux & Gnuroot" ;;
+        2) option_name="Termux (полная настройка)" ;;
+        3) option_name="Metasploit" ;;
+        4) option_name="Kali Info Gathering" ;;
+        5) option_name="Ngrok" ;;
+        6) option_name="Termux-Alpine" ;;
+        7) option_name="Termux-Fedora" ;;
+        8) option_name="Web Scraping Tools" ;;
+        9) option_name="WiFi Tools" ;;
+    esac
+
+    # Если включён режим авто-подтверждения, пропускаем
+    if [ "$AUTO_CONFIRM" = true ]; then
+        run_installation "$option"
+        return
+    fi
+
+    # Запрос подтверждения
+    echo ""
+    echo -e "${yellow}⚠️  Вы уверены, что хотите установить: ${bold}${cyan}${option_name}${reset}${yellow}?${reset}"
+    echo -e "${white}   Будет установлено множество пакетов. Это может занять время.${reset}"
+    echo ""
+    echo -ne "${green}   [y/N]: ${reset}"
+    read confirm
+
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        run_installation "$option"
+    else
+        echo -e "${cyan}❌ Отменено пользователем${reset}"
+        log_info "Пользователь отменил установку: $option_name"
+    fi
+}
+
+run_installation() {
+    local option="$1"
+
+    # Сброс счётчиков перед установкой
+    if [ "$DRY_RUN" = false ]; then
+        PACKAGES_INSTALLED=0
+        PACKAGES_FAILED=0
+        REPOS_CLONED=0
+        COMMANDS_EXECUTED=0
+    fi
+
+    case $option in
+        1) install_linux_gnuroot ;;
+        2) install_termux ;;
+        3) install_metasploit ;;
+        4) install_kali_info_gathering ;;
+        5) install_ngrok ;;
+        6) install_termux_alpine ;;
+        7) install_termux_fedora ;;
+        8) install_web_scraping ;;
+        9) install_wifi_tools ;;
+    esac
+}
+
+show_settings() {
+    echo ""
     echo -e "${bold}${white}╭────────────────────────────────────────────────────────────────────────────╮${reset}"
-    echo -e "${bold}${white}│${reset}  ${yellow}📋 МЕНЮ ВЫБОРА${reset}                                                      ${bold}${white}│${reset}"
+    echo -e "${bold}${white}│${reset}  ${yellow}⚙️  НАСТРОЙКИ${reset}                                                        ${bold}${white}│${reset}"
+    echo -e "${bold}${white}╰────────────────────────────────────────────────────────────────────────────╯${reset}"
+    echo ""
+    echo -e "  ${cyan}1${reset}) Тестовый режим (Dry Run):     ${yellow}${DRY_RUN}${reset}"
+    echo -e "  ${cyan}2${reset}) Авто-подтверждение:           ${yellow}${AUTO_CONFIRM}${reset}"
+    echo ""
+    echo -e "  ${white}Выберите настройку для переключения:${reset}"
+    echo -ne "  [1/2/B (назад)]: "
+    read setting
+
+    case $setting in
+        1)
+            if [ "$DRY_RUN" = true ]; then
+                DRY_RUN=false
+                echo -e "${green}✅ Тестовый режим выключен${reset}"
+            else
+                DRY_RUN=true
+                echo -e "${yellow}✅ Тестовый режим включён${reset}"
+                echo -e "${cyan}   Пакеты не будут устанавливаться, только симуляция${reset}"
+            fi
+            ;;
+        2)
+            if [ "$AUTO_CONFIRM" = true ]; then
+                AUTO_CONFIRM=false
+                echo -e "${green}✅ Авто-подтверждение выключено${reset}"
+            else
+                AUTO_CONFIRM=true
+                echo -e "${yellow}✅ Авто-подтверждение включено${reset}"
+                echo -e "${red}   Внимание: Установка начнётся сразу после выбора опции!${reset}"
+            fi
+            ;;
+        [Bb])
+            return
+            ;;
+    esac
+
+    sleep 2
+}
+
+show_statistics() {
+    echo ""
+    echo -e "${bold}${white}╭────────────────────────────────────────────────────────────────────────────╮${reset}"
+    echo -e "${bold}${white}│${reset}  ${yellow}📊 СТАТИСТИКА${reset}                                                        ${bold}${white}│${reset}"
+    echo -e "${bold}${white}╰────────────────────────────────────────────────────────────────────────────╯${reset}"
+    echo ""
+    echo -e "  ${green}✓${reset} Установлено пакетов:    ${bold}${PACKAGES_INSTALLED}${reset}"
+    echo -e "  ${red}✗${reset} Ошибок установки:       ${bold}${PACKAGES_FAILED}${reset}"
+    echo -e "  ${cyan}📥${reset} Склонировано репозиториев: ${bold}${REPOS_CLONED}${reset}"
+    echo -e "  ${yellow}⚙️${reset} Выполнено команд:       ${bold}${COMMANDS_EXECUTED}${reset}"
+    echo ""
+
+    if [ $PACKAGES_FAILED -gt 0 ]; then
+        local success_rate=$(( (PACKAGES_INSTALLED * 100) / (PACKAGES_INSTALLED + PACKAGES_FAILED) ))
+        echo -e "  ${white}Успешность установки:     ${bold}${success_rate}%${reset}"
+    fi
+
+    echo ""
+    echo -ne "${yellow}⏎ Нажмите Enter для возврата...${reset}"
+    read
+}
+
+print_final_statistics() {
+    if [ $PACKAGES_INSTALLED -gt 0 ] || [ $REPOS_CLONED -gt 0 ]; then
+        echo ""
+        echo -e "${bold}${white}╔════════════════════════════════════════════════════════════════════════════╗${reset}"
+        echo -e "${bold}${white}║${reset}  ${yellow}📊 ИТОГОВАЯ СТАТИСТИКА${reset}                                               ${bold}${white}║${reset}"
+        echo -e "${bold}${white}╚════════════════════════════════════════════════════════════════════════════╝${reset}"
+        echo ""
+        echo -e "  ${green}✓${reset} Установлено пакетов:    ${PACKAGES_INSTALLED}"
+        echo -e "  ${red}✗${reset} Ошибок:                 ${PACKAGES_FAILED}"
+        echo -e "  ${cyan}📥${reset} Репозиториев:           ${REPOS_CLONED}"
+        echo -e "  ${yellow}⚙️${reset} Команд:                 ${COMMANDS_EXECUTED}"
+        echo ""
+    fi
+}
+
+################################################################################
+# ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+################################################################################
+
+# Счётчики статистики
+PACKAGES_INSTALLED=0
+PACKAGES_FAILED=0
+REPOS_CLONED=0
+COMMANDS_EXECUTED=0
+
+# Режимы
+DRY_RUN=false
+AUTO_CONFIRM=false
+
+################################################################################
+# ОСНОВНАЯ ФУНКЦИЯ
+################################################################################
+
+main() {
+    # Инициализация
+    print_header
+    print_banner
+
+    # Проверки
+    echo -e "${cyan}🔍 Проверка системы...${reset}"
+
+    if ! check_connection; then
+        echo -e "${red}❌ Ошибка: Требуется интернет-соединение${reset}"
+        exit 1
+    fi
+
+    if ! check_storage; then
+        exit 1
+    fi
+
+    log_info "=== Запуск Fix-Termux v${VERSION} ==="
+
+    # Главное меню
+    show_main_menu
+}
+
+################################################################################
+# ГЛАВНОЕ МЕНЮ
+################################################################################
+
+show_main_menu() {
+    echo ""
+    echo -e "${bold}${white}╭────────────────────────────────────────────────────────────────────────────╮${reset}"
+    echo -e "${bold}${white}│${reset}  ${yellow}📋 ГЛАВНОЕ МЕНЮ${reset}                                                    ${bold}${white}│${reset}"
     echo -e "${bold}${white}╰────────────────────────────────────────────────────────────────────────────╯${reset}"
     echo ""
     echo -e "  ${green}1${reset}) ${cyan}🐧${reset} Linux & Gnuroot          ${white}— Базовые инструменты для Linux${reset}"
@@ -516,86 +729,47 @@ show_menu() {
     echo -e "  ${green}8${reset}) ${green}🕸️${reset} Web Scraping Tools       ${white}— Парсинг веб-сайтов${reset}"
     echo -e "  ${green}9${reset}) ${red}📡${reset} WiFi Tools               ${white}— Аудит беспроводных сетей${reset}"
     echo ""
+    echo -e "  ${bold}${white}─────────────────────────────────────────────────────────────────────────${reset}"
+    echo ""
+    echo -e "  ${yellow}⚙️${reset} ${cyan}S${reset}) Настройки                  ${white}— Режимы и параметры${reset}"
+    echo -e "  ${yellow}📊${reset} ${cyan}T${reset}) Статистика                 ${white}— Показать статистику${reset}"
+    echo ""
     echo -e "  ${red}0${reset}) ${white}Выход${reset}"
     echo ""
-}
-
-################################################################################
-# ОСНОВНАЯ ФУНКЦИЯ
-################################################################################
-
-main() {
-    # Инициализация
-    print_header
-    print_banner
-    
-    # Проверки
-    echo -e "${cyan}🔍 Проверка системы...${reset}"
-    
-    if ! check_connection; then
-        echo -e "${red}❌ Ошибка: Требуется интернет-соединение${reset}"
-        exit 1
-    fi
-    
-    if ! check_storage; then
-        exit 1
-    fi
-    
-    log_info "=== Запуск Fix-Termux v${VERSION} ==="
-    
-    # Меню выбора
-    show_menu
-    
     echo -ne "${bold}${white}╭─${reset} ${yellow}Выберите опцию${reset}: "
     read use
     echo -e "${bold}${white}╰─${reset}"
-    
+
     # Обработка выбора
     case $use in
-        1)
-            install_linux_gnuroot
+        1|2|3|4|5|6|7|8|9)
+            confirm_and_install "$use"
             ;;
-        2)
-            install_termux
+        [Ss])
+            show_settings
             ;;
-        3)
-            install_metasploit
-            ;;
-        4)
-            install_kali_info_gathering
-            ;;
-        5)
-            install_ngrok
-            ;;
-        6)
-            install_termux_alpine
-            ;;
-        7)
-            install_termux_fedora
-            ;;
-        8)
-            install_web_scraping
-            ;;
-        9)
-            install_wifi_tools
+        [Tt])
+            show_statistics
             ;;
         0)
             echo -e "${green}👋 Выход из программы...${reset}"
             log_info "Пользователь вышел из программы"
+            print_final_statistics
             clear
             exit 0
             ;;
         *)
             echo -e "${red}❌ Неверный выбор!${reset}"
             log_error "Неверный выбор: $use"
+            sleep 1
             ;;
     esac
-    
+
     # Возврат в меню
     echo ""
     echo -e "${yellow}⏎ Нажмите Enter для возврата в меню...${reset}"
     read
-    main
+    show_main_menu
 }
 
 ################################################################################
