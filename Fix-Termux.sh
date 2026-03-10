@@ -523,6 +523,91 @@ install_wifi_tools() {
 }
 
 ################################################################################
+# ПРОФИЛИ УСТАНОВКИ
+################################################################################
+
+install_profile() {
+    local profile_name="$1"
+    local -n profile_array=$2
+
+    echo -e "${bold}${blue}📦 Установка профиля: ${cyan}${profile_name}${reset}"
+    echo ""
+
+    if [ ${#profile_array[@]} -eq 0 ]; then
+        echo -e "${red}❌ Профиль пуст${reset}"
+        return 1
+    fi
+
+    echo -e "${white}   Пакетов: ${#profile_array[@]}${reset}"
+    echo -e "${white}   Режим: ${DRY_RUN}${reset}"
+    echo ""
+
+    # Создание backup
+    if [ "$ENABLE_BACKUP" = true ] && [ "$DRY_RUN" = false ]; then
+        create_backup
+    fi
+
+    # Сброс счётчиков
+    PACKAGES_INSTALLED=0
+    PACKAGES_FAILED=0
+
+    # Установка пакетов
+    local count=0
+    for pkg in "${profile_array[@]}"; do
+        count=$((count + 1))
+        echo -ne "${cyan}[$count/${#profile_array[@]}]${reset} "
+        install_package "$pkg" "pkg"
+    done
+
+    echo ""
+    echo -e "${green}✅ Профиль '${profile_name}' установлен!${reset}"
+    echo -e "${white}   Установлено: ${PACKAGES_INSTALLED}${reset}"
+    echo -e "${red}   Ошибок: ${PACKAGES_FAILED}${reset}"
+    log_success "Установлен профиль: $profile_name"
+}
+
+show_profiles_menu() {
+    echo ""
+    echo -e "${bold}${white}╭────────────────────────────────────────────────────────────────────────────╮${reset}"
+    echo -e "${bold}${white}│${reset}  ${yellow}📦 ПРОФИЛИ УСТАНОВКИ${reset}                                                ${bold}${white}│${reset}"
+    echo -e "${bold}${white}╰────────────────────────────────────────────────────────────────────────────╯${reset}"
+    echo ""
+    echo -e "  ${green}1${reset}) ${cyan}📌${reset} Minimal     ${white}— Базовые инструменты (~50MB)${reset}"
+    echo -e "  ${green}2${reset}) ${yellow}📦${reset} Standard    ${white}— Популярные инструменты (~200MB)${reset}"
+    echo -e "  ${green}3${reset}) ${blue}🚀${reset} Full        ${white}— Полная установка (~500MB)${reset}"
+    echo -e "  ${green}4${reset}) ${red}🔓${reset} Pentest     ${white}— Инструменты для пентестинга (~800MB)${reset}"
+    echo ""
+    echo -e "  ${white}Выберите профиль:${reset}"
+    echo -ne "  [1/2/3/4/B (назад)]: "
+    read profile_choice
+
+    case $profile_choice in
+        1)
+            install_profile "Minimal" PROFILE_MINIMAL
+            ;;
+        2)
+            install_profile "Standard" PROFILE_STANDARD
+            ;;
+        3)
+            install_profile "Full" PROFILE_FULL
+            ;;
+        4)
+            install_profile "Pentest" PROFILE_PENTEST
+            ;;
+        [Bb])
+            return
+            ;;
+        *)
+            echo -e "${red}❌ Неверный выбор${reset}"
+            ;;
+    esac
+
+    echo ""
+    echo -ne "${yellow}⏎ Нажмите Enter для продолжения...${reset}"
+    read
+}
+
+################################################################################
 # ПОДТВЕРЖДЕНИЕ И СТАТИСТИКА
 ################################################################################
 
@@ -982,6 +1067,10 @@ show_main_menu() {
     echo ""
     echo -e "  ${bold}${white}─────────────────────────────────────────────────────────────────────────${reset}"
     echo ""
+    echo -e "  ${blue}📦${reset} ${cyan}P${reset}) Профили установки           ${white}— Minimal, Standard, Full, Pentest${reset}"
+    echo ""
+    echo -e "  ${bold}${white}─────────────────────────────────────────────────────────────────────────${reset}"
+    echo ""
     echo -e "  ${yellow}⚙️${reset} ${cyan}S${reset}) Настройки                  ${white}— Режимы и параметры${reset}"
     echo -e "  ${yellow}📊${reset} ${cyan}T${reset}) Статистика                 ${white}— Показать статистику${reset}"
     echo ""
@@ -995,6 +1084,9 @@ show_main_menu() {
     case $use in
         1|2|3|4|5|6|7|8|9)
             confirm_and_install "$use"
+            ;;
+        [Pp])
+            show_profiles_menu
             ;;
         [Ss])
             show_settings

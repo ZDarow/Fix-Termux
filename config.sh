@@ -1,6 +1,49 @@
 #!/bin/bash
 # Конфигурация пакетов для Fix-Termux
-# Версия: 2.3
+# Версия: 3.0
+
+################################################################################
+# ПРОФИЛИ УСТАНОВКИ
+################################################################################
+
+# Minimal — только базовые инструменты (~50MB)
+PROFILE_MINIMAL=(
+    "git" "wget" "curl" "nano" "vim"
+    "python" "python3" "pip"
+)
+
+# Standard — базовые + популярные инструменты (~200MB)
+PROFILE_STANDARD=(
+    "${PROFILE_MINIMAL[@]}"
+    "git" "wget" "curl" "nano" "vim"
+    "python" "python3" "pip"
+    "ruby" "golang" "nodejs" "npm"
+    "figlet" "toilet" "cmatrix"
+    "openssh" "unzip" "zip" "tar" "gzip"
+    "termux-api" "proot"
+)
+
+# Full — полная установка (~500MB)
+PROFILE_FULL=(
+    "${PROFILE_STANDARD[@]}"
+    "clang" "php" "mariadb" "postgresql"
+    "metasploit" "nmap" "sqlmap"
+    "tor" "hydra" "john"
+    "wireshark" "tcpdump"
+    "mc" "htop" "tree" "jq"
+    "man" "texinfo" "graphviz"
+)
+
+# Pentest — инструменты для пентестинга (~800MB)
+PROFILE_PENTEST=(
+    "${PROFILE_FULL[@]}"
+    "aircrack-ng" "reaver" "bully"
+    "hashcat" "wifite" "kismet"
+    "nikto" "masscan" "recon-ng"
+    "theharvester" "sublist3r"
+    "burpsuite" "owasp-zap"
+    "ghidra" "radare2" "binwalk"
+)
 
 ################################################################################
 # ПАКЕТЫ ДЛЯ TERMUX
