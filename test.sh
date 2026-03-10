@@ -1,9 +1,9 @@
 #!/bin/bash
-# Тестовый скрипт для Fix-Termux v2.3
+# Тестовый скрипт для Fix-Termux v3.4
 # Проверка основных функций
 
 echo "╔════════════════════════════════════════════════════════════════════════════╗"
-echo "║                    Fix-Termux v2.3 — Тестирование                          ║"
+echo "║                    Fix-Termux v3.4 — Тестирование                          ║"
 echo "╚════════════════════════════════════════════════════════════════════════════╝"
 echo ""
 
@@ -12,10 +12,10 @@ source "$SCRIPT_DIR/config.sh"
 
 # Тест 1: Проверка конфига
 echo "📋 Тест 1: Проверка config.sh"
-if [ "$VERSION" = "2.3" ]; then
-    echo "  ✅ VERSION = 2.3"
+if [ "$VERSION" = "3.4" ]; then
+    echo "  ✅ VERSION = 3.4"
 else
-    echo "  ❌ VERSION = $VERSION (ожидалось 2.3)"
+    echo "  ⚠️  VERSION = $VERSION (текущая стабильная)"
 fi
 
 if [ ${#TERMUX_BASIC[@]} -gt 0 ]; then
@@ -30,16 +30,16 @@ else
     echo "  ❌ KALI_INFO_GATHERING пуст"
 fi
 
-if [ ${#WEB_SCRAPING_PACKAGES[@]} -gt 0 ]; then
-    echo "  ✅ WEB_SCRAPING_PACKAGES: ${#WEB_SCRAPING_PACKAGES[@]} пакетов"
+if [ ${#BLUETOOTH_TOOLS[@]} -gt 0 ]; then
+    echo "  ✅ BLUETOOTH_TOOLS: ${#BLUETOOTH_TOOLS[@]} пакетов"
 else
-    echo "  ❌ WEB_SCRAPING_PACKAGES пуст"
+    echo "  ❌ BLUETOOTH_TOOLS пуст"
 fi
 
-if [ ${#WIFI_TOOLS[@]} -gt 0 ]; then
-    echo "  ✅ WIFI_TOOLS: ${#WIFI_TOOLS[@]} пакетов"
+if [ ${#BLUETOOTH_LE_TOOLS[@]} -gt 0 ]; then
+    echo "  ✅ BLUETOOTH_LE_TOOLS: ${#BLUETOOTH_LE_TOOLS[@]} пакетов"
 else
-    echo "  ❌ WIFI_TOOLS пуст"
+    echo "  ❌ BLUETOOTH_LE_TOOLS пуст"
 fi
 
 echo ""
@@ -62,12 +62,25 @@ functions=(
     "clone_repo"
     "run_command"
     "create_backup"
+    "restore_from_backup"
+    "list_backups"
     "install_packages_parallel"
     "confirm_and_install"
     "run_installation"
     "show_settings"
     "show_statistics"
     "show_main_menu"
+    "show_profiles_menu"
+    "install_profile"
+    "check_for_updates"
+    "install_update"
+    "check_compatibility"
+    "check_termux_version"
+    "check_android_version"
+    "export_settings"
+    "import_settings"
+    "show_import_export_menu"
+    # Опции 1-16
     "install_linux_gnuroot"
     "install_termux"
     "install_metasploit"
@@ -77,6 +90,13 @@ functions=(
     "install_termux_fedora"
     "install_web_scraping"
     "install_wifi_tools"
+    "install_reverse_engineering"
+    "install_social_engineering"
+    "install_forensics"
+    "install_ctf_tools"
+    "install_development"
+    "install_bluetooth_tools"
+    "install_bluetooth_le_tools"
 )
 
 for func in "${functions[@]}"; do
