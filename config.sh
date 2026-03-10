@@ -212,3 +212,13 @@ BLUETOOTH_TOOLS=(
     "obexftp" "obexfs" "obexd"
     "bluebugger" "bluespam" "l2ping"
 )
+
+# Опция 16: Bluetooth LE (Low Energy) Tools
+BLUETOOTH_LE_TOOLS=(
+    "gatttool" "hcitool" "btmgmt"
+    "bluez-hid2hci" "bluez-deprecated"
+    "bleah" "gattlib" "pygatt"
+    "bluepy" "bleak" "bleson"
+    "nordic-semiconductor-nrfutil" "microbit"
+    "espruino" "ruuvi-firmware"
+)

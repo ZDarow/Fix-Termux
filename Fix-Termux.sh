@@ -1008,6 +1008,48 @@ install_bluetooth_tools() {
     log_success "=== Завершена установка: Bluetooth Tools ==="
 }
 
+install_bluetooth_le_tools() {
+    log_info "=== Начало установки: Bluetooth LE (Low Energy) Tools ==="
+
+    echo -e "${bold}${blue}📋 Установка инструментов для работы с Bluetooth Low Energy...${reset}"
+    echo ""
+
+    echo -e "${yellow}📡 Основные BLE инструменты:${reset}"
+    install_package "gatttool" "pkg"
+    install_package "hcitool" "pkg"
+    install_package "btmgmt" "pkg"
+    install_package "bluez-deprecated" "pkg"
+
+    echo ""
+    echo -e "${yellow}🔍 BLE сканеры и анализаторы:${reset}"
+    install_package "bleah" "pkg"
+    run_command "pip install gattlib" "Установка gattlib"
+    run_command "pip install pygatt" "Установка pygatt"
+
+    echo ""
+    echo -e "${yellow}🐍 Python BLE библиотеки:${reset}"
+    run_command "pip install bluepy" "Установка bluepy"
+    run_command "pip install bleak" "Установка bleak (кроссплатформенный)"
+    run_command "pip install bleson" "Установка bleson"
+
+    echo ""
+    echo -e "${yellow}📦 Специализированные инструменты:${reset}"
+    run_command "pip install nordic-semiconductor-nrfutil" "Установка nrfutil (Nordic SDK)"
+    run_command "pip install microbit" "Установка microbit (BBC micro:bit)"
+
+    echo ""
+    echo -e "${yellow}🔧 Прошивки и утилиты:${reset}"
+    echo -ne "  Установка Espruino... "
+    run_command "npm install -g espruino" "Установка Espruino IDE" 2>/dev/null || echo -e "${yellow}⊘${reset}"
+
+    echo ""
+    echo -e "${green}✅ Bluetooth LE Tools установлены!${reset}"
+    echo -e "${yellow}📝 Примечание: Требуется root и BLE адаптер${reset}"
+    echo -e "${white}   Запуск: gatttool -I (интерактивный режим)${reset}"
+    echo -e "${white}   Сканирование: hcitool lescan${reset}"
+    log_success "=== Завершена установка: Bluetooth LE Tools ==="
+}
+
 ################################################################################
 # ПРОФИЛИ УСТАНОВКИ
 ################################################################################
@@ -1337,6 +1379,7 @@ confirm_and_install() {
         13) option_name="CTF Tools" ;;
         14) option_name="Development Tools" ;;
         15) option_name="Bluetooth Tools" ;;
+        16) option_name="Bluetooth LE (Low Energy)" ;;
     esac
 
     # Если включён режим авто-подтверждения, пропускаем
@@ -1393,6 +1436,7 @@ run_installation() {
         13) install_ctf_tools ;;
         14) install_development ;;
         15) install_bluetooth_tools ;;
+        16) install_bluetooth_le_tools ;;
     esac
 
     # Показ статистики после установки
@@ -1563,6 +1607,7 @@ show_main_menu() {
     echo -e "  ${green}13${reset}) ${red}🚩${reset} CTF Tools               ${white}— Инструменты для CTF${reset}"
     echo -e "  ${green}14${reset}) ${yellow}💻${reset} Development             ${white}— Инструменты разработчика${reset}"
     echo -e "  ${green}15${reset}) ${blue}📶${reset} Bluetooth Tools          ${white}— Работа с Bluetooth${reset}"
+    echo -e "  ${green}16${reset}) ${cyan}📡${reset} Bluetooth LE             ${white}— Bluetooth Low Energy${reset}"
     echo ""
     echo -e "  ${bold}${white}─────────────────────────────────────────────────────────────────────────${reset}"
     echo ""
@@ -1582,7 +1627,7 @@ show_main_menu() {
 
     # Обработка выбора
     case $use in
-        1|2|3|4|5|6|7|8|9|10|11|12|13|14|15)
+        1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16)
             confirm_and_install "$use"
             ;;
         [Pp])
