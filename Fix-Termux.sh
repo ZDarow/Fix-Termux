@@ -85,6 +85,106 @@ check_connection() {
     fi
 }
 
+check_termux_version() {
+    echo -e "${cyan}📱 Проверка версии Termux...${reset}"
+
+    if command -v pkg &> /dev/null; then
+        local termux_version=$(pkg --version 2>&1 | head -1)
+        echo -e "  ${green}✓${reset} Termux: ${bold}${termux_version}${reset}"
+        log_info "Termux версия: $termux_version"
+        return 0
+    else
+        echo -e "  ${yellow}⚠️${reset} Termux не найден (pkg не доступен)"
+        log_warning "Termux не найден"
+        return 1
+    fi
+}
+
+check_android_version() {
+    echo -e "${cyan}🤖 Проверка версии Android...${reset}"
+
+    if [ -f /system/build.prop ]; then
+        local android_version=$(grep "ro.build.version.release" /system/build.prop 2>/dev/null | cut -d'=' -f2)
+        local android_sdk=$(grep "ro.build.version.sdk" /system/build.prop 2>/dev/null | cut -d'=' -f2)
+        echo -e "  ${green}✓${reset} Android: ${bold}${android_version:-Unknown}${reset} (SDK ${android_sdk:-?})"
+        log_info "Android версия: $android_version (SDK $android_sdk)"
+
+        # Проверка минимальной версии
+        if [ -n "$android_sdk" ] && [ "$android_sdk" -lt 21 ]; then
+            echo -e "  ${red}❌ Android слишком старый! Требуется Android 5.0+ (SDK 21+)${reset}"
+            log_error "Android слишком старый: SDK $android_sdk"
+            return 1
+        fi
+        return 0
+    elif [ -f /system/properties/build.prop ]; then
+        local android_version=$(getprop ro.build.version.release 2>/dev/null)
+        local android_sdk=$(getprop ro.build.version.sdk 2>/dev/null)
+        echo -e "  ${green}✓${reset} Android: ${bold}${android_version:-Unknown}${reset} (SDK ${android_sdk:-?})"
+        log_info "Android версия: $android_version (SDK $android_sdk)"
+        return 0
+    else
+        # Попытка через getprop
+        local android_version=$(getprop ro.build.version.release 2>/dev/null)
+        local android_sdk=$(getprop ro.build.version.sdk 2>/dev/null)
+        if [ -n "$android_version" ]; then
+            echo -e "  ${green}✓${reset} Android: ${bold}${android_version}${reset} (SDK ${android_sdk:-?})"
+            log_info "Android версия: $android_version (SDK $android_sdk)"
+            return 0
+        fi
+        echo -e "  ${yellow}⚠️${reset} Не удалось определить версию Android"
+        log_warning "Не удалось определить версию Android"
+        return 1
+    fi
+}
+
+check_root_status() {
+    echo -e "${cyan}🔒 Проверка root-прав...${reset}"
+
+    if [ "$(id -u)" -eq 0 ]; then
+        echo -e "  ${green}✓${reset} Root: ${bold}доступен${reset}"
+        log_info "Root права: доступны"
+        return 0
+    else
+        echo -e "  ${yellow}⚠️${reset} Root: ${bold}не доступен${reset} (некоторые функции могут не работать)"
+        log_info "Root права: не доступны"
+        return 1
+    fi
+}
+
+check_compatibility() {
+    echo -e "${bold}${blue}🔍 Проверка совместимости...${reset}"
+    echo ""
+
+    local issues=0
+
+    # Проверка Termux
+    check_termux_version || issues=$((issues + 1))
+
+    # Проверка Android
+    check_android_version || issues=$((issues + 1))
+
+    # Проверка root (не критично)
+    check_root_status
+
+    # Проверка места на диске
+    check_storage || issues=$((issues + 1))
+
+    # Проверка интернета
+    check_connection || issues=$((issues + 1))
+
+    echo ""
+    if [ $issues -gt 0 ]; then
+        echo -e "${yellow}⚠️  Найдено проблем: $issues${reset}"
+        echo -e "${white}   Некоторые функции могут работать некорректно.${reset}"
+        log_warning "Проверка совместимости: $issues проблем"
+    else
+        echo -e "${green}✅ Все проверки пройдены!${reset}"
+        log_success "Проверка совместимости: OK"
+    fi
+
+    return 0
+}
+
 ################################################################################
 # УТИЛИТЫ
 ################################################################################
@@ -1027,17 +1127,8 @@ main() {
     print_header
     print_banner
 
-    # Проверки
-    echo -e "${cyan}🔍 Проверка системы...${reset}"
-
-    if ! check_connection; then
-        echo -e "${red}❌ Ошибка: Требуется интернет-соединение${reset}"
-        exit 1
-    fi
-
-    if ! check_storage; then
-        exit 1
-    fi
+    # Полная проверка совместимости
+    check_compatibility
 
     log_info "=== Запуск Fix-Termux v${VERSION} ==="
 
