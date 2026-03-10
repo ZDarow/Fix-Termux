@@ -2,15 +2,21 @@
 # Fix-Termux.sh — Автоматическая настройка Termux и Linux
 # Автор: Ahmed Alaa
 # Fixed & Refactored by Qwen Code
-# Версия: 2.0
+# Версия: 2.1
 
 ################################################################################
-# КОНФИГУРАЦИЯ
+# ПОДКЛЮЧЕНИЕ КОНФИГУРАЦИИ
 ################################################################################
 
-VERSION="2.0"
-LOG_FILE="$HOME/fix-termux.log"
-REQUIRED_SPACE_MB=2048  # Минимум 2GB свободного места
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/config.sh" ]; then
+    source "$SCRIPT_DIR/config.sh"
+fi
+
+# Резервные значения если конфиг не загружен
+VERSION="${VERSION:-2.1}"
+LOG_FILE="${LOG_FILE:-$HOME/fix-termux.log}"
+REQUIRED_SPACE_MB="${REQUIRED_SPACE_MB:-2048}"
 
 ################################################################################
 # ЦВЕТА
@@ -400,13 +406,95 @@ install_termux_alpine() {
 
 install_termux_fedora() {
     log_info "=== Начало установки: Termux-Fedora ==="
-    
+
     echo -e "${bold}${blue}📋 Установка Fedora в Termux...${reset}"
     echo ""
-    
-    # TODO: Реализовать установку Fedora
-    echo -e "${yellow}⏳ В разработке...${reset}"
-    log_info "Fedora installation not implemented yet"
+
+    install_package "proot" "pkg"
+    install_package "wget" "pkg"
+
+    echo -ne "${cyan}📥 Загрузка скрипта${reset}... "
+    cd "$HOME"
+    if wget -O fedora.sh https://raw.githubusercontent.com/nmulasmajic/Proot-Distro/master/fedora.sh >> "$LOG_FILE" 2>&1; then
+        echo -e "${green}✓${reset}"
+        chmod +x fedora.sh
+        echo -e "${green}✅ Fedora установлен!${reset}"
+        echo -e "${yellow}📝 Запуск: ./fedora.sh${reset}"
+        log_success "=== Завершена установка: Termux-Fedora ==="
+    else
+        echo -e "${red}✗${reset}"
+        log_error "Ошибка загрузки скрипта Fedora"
+        echo -e "${red}❌ Ошибка установки Fedora${reset}"
+    fi
+}
+
+install_web_scraping() {
+    log_info "=== Начало установки: Web Scraping Tools ==="
+
+    echo -e "${bold}${blue}📋 Установка инструментов для Web Scraping...${reset}"
+    echo ""
+
+    # Python и pip
+    echo -e "${yellow}🐍 Python и библиотеки:${reset}"
+    install_package "python" "pkg"
+    install_package "python3" "pkg"
+
+    run_command "pip install --upgrade pip" "Обновление pip"
+    install_package "requests" "pip"
+    install_package "beautifulsoup4" "pip"
+    install_package "lxml" "pip"
+    install_package "selenium" "pip"
+    install_package "scrapy" "pip"
+    install_package "urllib3" "pip"
+    install_package "httpx" "pip"
+    install_package "aiohttp" "pip"
+    install_package "fake-useragent" "pip"
+    install_package "retrying" "pip"
+
+    # Node.js
+    echo -e "${yellow}📦 Node.js и пакеты:${reset}"
+    install_package "nodejs" "pkg"
+    install_package "npm" "pkg"
+
+    run_command "npm install -g puppeteer" "Установка puppeteer"
+    run_command "npm install -g cheerio" "Установка cheerio"
+
+    echo ""
+    echo -e "${green}✅ Web Scraping Tools установлены!${reset}"
+    log_success "=== Завершена установка: Web Scraping Tools ==="
+}
+
+install_wifi_tools() {
+    log_info "=== Начало установки: WiFi Tools ==="
+
+    echo -e "${bold}${blue}📋 Установка WiFi инструментов...${reset}"
+    echo ""
+
+    # Проверка root
+    if ! check_root; then
+        echo -e "${red}⚠️  Требуется root-доступ для WiFi инструментов!${reset}"
+        echo -e "${yellow}Продолжить без root? (некоторые функции не будут работать)${reset}"
+        read -p "[y/N]: " confirm
+        if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+            log_info "Пользователь отменил установку WiFi Tools"
+            return 1
+        fi
+    fi
+
+    # Основные WiFi инструменты
+    echo -e "${yellow}📡 WiFi инструменты:${reset}"
+    apt install -y aircrack-ng reaver bully pixiewps >> "$LOG_FILE" 2>&1 && echo -e "${green}✓${reset}" || echo -e "${red}✗${reset}"
+    apt install -y hashcat cowpatty wifite kismet >> "$LOG_FILE" 2>&1 && echo -e "${green}✓${reset}" || echo -e "${red}✗${reset}"
+    apt install -y wireshark tcpdump tshark >> "$LOG_FILE" 2>&1 && echo -e "${green}✓${reset}" || echo -e "${red}✗${reset}"
+
+    # Дополнительные инструменты
+    echo -e "${yellow}🔧 Дополнительные инструменты:${reset}"
+    apt install -y macchanger iw wireless-tools crda >> "$LOG_FILE" 2>&1 && echo -e "${green}✓${reset}" || echo -e "${red}✗${reset}"
+
+    echo ""
+    echo -e "${green}✅ WiFi Tools установлены!${reset}"
+    echo -e "${yellow}📝 Примечание: Для работы требуется root и беспроводной адаптер${reset}"
+    log_success "=== Завершена установка: WiFi Tools ==="
 }
 
 ################################################################################
@@ -425,6 +513,8 @@ show_menu() {
     echo -e "  ${green}5${reset}) ${blue}🌐${reset} Ngrok                    ${white}— Туннелирование${reset}"
     echo -e "  ${green}6${reset}) ${cyan}🏔️${reset} Termux-Alpine            ${white}— Alpine Linux в Termux${reset}"
     echo -e "  ${green}7${reset}) ${yellow}🎩${reset} Termux-Fedora           ${white}— Fedora в Termux${reset}"
+    echo -e "  ${green}8${reset}) ${green}🕸️${reset} Web Scraping Tools       ${white}— Парсинг веб-сайтов${reset}"
+    echo -e "  ${green}9${reset}) ${red}📡${reset} WiFi Tools               ${white}— Аудит беспроводных сетей${reset}"
     echo ""
     echo -e "  ${red}0${reset}) ${white}Выход${reset}"
     echo ""
@@ -482,6 +572,12 @@ main() {
             ;;
         7)
             install_termux_fedora
+            ;;
+        8)
+            install_web_scraping
+            ;;
+        9)
+            install_wifi_tools
             ;;
         0)
             echo -e "${green}👋 Выход из программы...${reset}"

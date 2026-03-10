@@ -1,0 +1,38 @@
+# Лог файлы
+*.log
+fix-termux.log
+logs/
+
+# Временные файлы
+*.tmp
+*.temp
+/tmp/
+*.swp
+*.swo
+*~
+
+# Резервные копии
+*.bak
+*.backup
+*.old
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+*.orig
+
+# Конфигурации с токенами (если будут)
+*.token
+*.secret
+.env
+
+# Скачанные файлы
+ngrok
+*.tgz
+*.tar.gz
+TermuxAlpine.sh
+
+# IDE
+.vscode/
+.idea/
+*.iml
