@@ -152,4 +152,54 @@ CONNECTION_TIMEOUT=5
 LOG_FILE="$HOME/fix-termux.log"
 
 # Версия
-VERSION="2.1"
+VERSION="3.0"
+
+################################################################################
+# НОВЫЕ ИНСТРУМЕНТЫ (Опции 10-14)
+################################################################################
+
+# Опция 10: Reverse Engineering
+REVERSE_ENGINEERING=(
+    "radare2" "ghidra" "binwalk" "r2frida"
+    "ltrace" "strace" "gdb" "objdump"
+    "apktool" "dex2jar" "jd-gui"
+)
+
+# Опция 11: Social Engineering
+SOCIAL_ENGINEERING=(
+    "setoolkit" "gophish" "king-phisher"
+    "set" "social-engineer-toolkit"
+    "maltego" "theharvester"
+    "creepy" "recon-ng"
+)
+
+# Опция 12: Forensics
+FORENSICS=(
+    "autopsy" "sleuthkit" "volatility"
+    "bulk-extractor" "foremost" "scalpel"
+    "exiftool" "binwalk" "forensics"
+    "wireshark" "tcpdump" "tshark"
+)
+
+# Опция 13: CTF Tools
+CTF_TOOLS=(
+    "pwntools" "gef" "ropper" "ROPgadget"
+    "one_gadget" "seccomp-tools"
+    "john" "hashcat" "hydra"
+    "sqlmap" "burpsuite" "owasp-zap"
+    "nikto" "gobuster" "dirb"
+    "wireshark" "ncat" "netcat"
+)
+
+# Опция 14: Development Tools
+DEVELOPMENT=(
+    "git" "subversion" "mercurial"
+    "vim" "neovim" "emacs" "nano"
+    "nodejs" "npm" "yarn"
+    "python" "python2" "python3" "pip"
+    "ruby" "gem" "bundler"
+    "golang" "rust" "cargo"
+    "clang" "gcc" "make" "cmake"
+    "docker" "kubectl" "helm"
+    "code-server" "termux-api"
+)

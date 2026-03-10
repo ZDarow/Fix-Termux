@@ -705,6 +705,158 @@ install_wifi_tools() {
     log_success "=== Завершена установка: WiFi Tools ==="
 }
 
+install_reverse_engineering() {
+    log_info "=== Начало установки: Reverse Engineering Tools ==="
+
+    echo -e "${bold}${blue}📋 Установка инструментов для Reverse Engineering...${reset}"
+    echo ""
+
+    echo -e "${yellow}🔧 Reverse Engineering инструменты:${reset}"
+    install_package "radare2" "pkg"
+    install_package "binwalk" "pkg"
+    install_package "ltrace" "pkg"
+    install_package "strace" "pkg"
+    install_package "gdb" "pkg"
+    install_package "objdump" "pkg"
+    install_package "apktool" "pkg"
+
+    echo ""
+    echo -e "${yellow}📦 Дополнительные инструменты:${reset}"
+    run_command "pip install r2frida" "Установка r2frida"
+    run_command "pip install gef" "Установка GEF"
+
+    echo ""
+    echo -e "${green}✅ Reverse Engineering Tools установлены!${reset}"
+    echo -e "${yellow}📝 Примечание: Ghidra требует отдельной установки (тяжёлый пакет)${reset}"
+    log_success "=== Завершена установка: Reverse Engineering ==="
+}
+
+install_social_engineering() {
+    log_info "=== Начало установки: Social Engineering Tools ==="
+
+    echo -e "${bold}${blue}📋 Установка инструментов для Social Engineering...${reset}"
+    echo ""
+
+    echo -e "${yellow}🎭 Social Engineering инструменты:${reset}"
+    install_package "setoolkit" "pkg"
+    install_package "maltego" "pkg"
+    install_package "theharvester" "pkg"
+    install_package "recon-ng" "pkg"
+
+    echo ""
+    echo -e "${yellow}📦 Git репозитории:${reset}"
+    clone_repo "https://github.com/trustedsec/social-engineer-toolkit.git" "SET"
+    clone_repo "https://github.com/gophish/gophish.git" "Gophish"
+
+    echo ""
+    echo -e "${green}✅ Social Engineering Tools установлены!${reset}"
+    log_success "=== Завершена установка: Social Engineering ==="
+}
+
+install_forensics() {
+    log_info "=== Начало установки: Forensics Tools ==="
+
+    echo -e "${bold}${blue}📋 Установка инструментов для цифровой криминалистики...${reset}"
+    echo ""
+
+    echo -e "${yellow}🔍 Forensics инструменты:${reset}"
+    install_package "sleuthkit" "pkg"
+    install_package "bulk-extractor" "pkg"
+    install_package "foremost" "pkg"
+    install_package "scalpel" "pkg"
+    install_package "exiftool" "pkg"
+    install_package "binwalk" "pkg"
+    install_package "wireshark" "pkg"
+    install_package "tcpdump" "pkg"
+    install_package "tshark" "pkg"
+
+    echo ""
+    echo -e "${yellow}📦 Python инструменты:${reset}"
+    run_command "pip install volatility" "Установка Volatility"
+
+    echo ""
+    echo -e "${green}✅ Forensics Tools установлены!${reset}"
+    echo -e "${yellow}📝 Примечание: Autopsy требует GUI и отдельной установки${reset}"
+    log_success "=== Завершена установка: Forensics ==="
+}
+
+install_ctf_tools() {
+    log_info "=== Начало установки: CTF Tools ==="
+
+    echo -e "${bold}${blue}📋 Установка инструментов для CTF соревнований...${reset}"
+    echo ""
+
+    echo -e "${yellow}🚩 Pwn инструменты:${reset}"
+    run_command "pip install pwntools" "Установка Pwntools"
+    run_command "pip install ROPgadget" "Установка ROPgadget"
+    run_command "pip install ropper" "Установка Ropper"
+    run_command "pip install seccomp-tools" "Установка seccomp-tools"
+    install_package "gdb" "pkg"
+
+    echo -e "${yellow}🔓 Password cracking:${reset}"
+    install_package "john" "pkg"
+    install_package "hashcat" "pkg"
+    install_package "hydra" "pkg"
+
+    echo -e "${yellow}🌐 Web инструменты:${reset}"
+    install_package "sqlmap" "pkg"
+    install_package "nikto" "pkg"
+    install_package "gobuster" "pkg"
+    install_package "dirb" "pkg"
+
+    echo -e "${yellow}📡 Сетевые инструменты:${reset}"
+    install_package "wireshark" "pkg"
+    install_package "ncat" "pkg"
+    install_package "netcat" "pkg"
+
+    echo ""
+    echo -e "${green}✅ CTF Tools установлены!${reset}"
+    log_success "=== Завершена установка: CTF Tools ==="
+}
+
+install_development() {
+    log_info "=== Начало установки: Development Tools ==="
+
+    echo -e "${bold}${blue}📋 Установка инструментов для разработки...${reset}"
+    echo ""
+
+    echo -e "${yellow}📦 Системы контроля версий:${reset}"
+    install_package "git" "pkg"
+    install_package "subversion" "pkg"
+    install_package "mercurial" "pkg"
+
+    echo -e "${yellow}✏️  Редакторы кода:${reset}"
+    install_package "vim" "pkg"
+    install_package "neovim" "pkg"
+    install_package "emacs" "pkg"
+    install_package "nano" "pkg"
+
+    echo -e "${yellow}🐍 Языки программирования:${reset}"
+    install_package "python" "pkg"
+    install_package "python3" "pkg"
+    install_package "pip" "pkg"
+    install_package "ruby" "pkg"
+    install_package "golang" "pkg"
+    install_package "nodejs" "pkg"
+    install_package "npm" "pkg"
+    install_package "clang" "pkg"
+    install_package "gcc" "pkg"
+
+    echo -e "${yellow}🔧 Инструменты сборки:${reset}"
+    install_package "make" "pkg"
+    install_package "cmake" "pkg"
+    install_package "pkg-config" "pkg"
+
+    echo -e "${yellow}📦 Менеджеры пакетов:${reset}"
+    run_command "gem install bundler" "Установка Bundler"
+    run_command "npm install -g yarn" "Установка Yarn"
+
+    echo ""
+    echo -e "${green}✅ Development Tools установлены!${reset}"
+    echo -e "${white}   Установлено полноценное окружение разработчика!${reset}"
+    log_success "=== Завершена установка: Development Tools ==="
+}
+
 ################################################################################
 # ПРОФИЛИ УСТАНОВКИ
 ################################################################################
@@ -1028,6 +1180,11 @@ confirm_and_install() {
         7) option_name="Termux-Fedora" ;;
         8) option_name="Web Scraping Tools" ;;
         9) option_name="WiFi Tools" ;;
+        10) option_name="Reverse Engineering" ;;
+        11) option_name="Social Engineering" ;;
+        12) option_name="Forensics" ;;
+        13) option_name="CTF Tools" ;;
+        14) option_name="Development Tools" ;;
     esac
 
     # Если включён режим авто-подтверждения, пропускаем
@@ -1078,6 +1235,11 @@ run_installation() {
         7) install_termux_fedora ;;
         8) install_web_scraping ;;
         9) install_wifi_tools ;;
+        10) install_reverse_engineering ;;
+        11) install_social_engineering ;;
+        12) install_forensics ;;
+        13) install_ctf_tools ;;
+        14) install_development ;;
     esac
 
     # Показ статистики после установки
@@ -1238,6 +1400,11 @@ show_main_menu() {
     echo -e "  ${green}7${reset}) ${yellow}🎩${reset} Termux-Fedora           ${white}— Fedora в Termux${reset}"
     echo -e "  ${green}8${reset}) ${green}🕸️${reset} Web Scraping Tools       ${white}— Парсинг веб-сайтов${reset}"
     echo -e "  ${green}9${reset}) ${red}📡${reset} WiFi Tools               ${white}— Аудит беспроводных сетей${reset}"
+    echo -e "  ${green}10${reset}) ${blue}🔍${reset} Reverse Engineering      ${white}— Реверс-инжиниринг${reset}"
+    echo -e "  ${green}11${reset}) ${purple}🎭${reset} Social Engineering      ${white}— Социальная инженерия${reset}"
+    echo -e "  ${green}12${reset}) ${cyan}🔬${reset} Forensics               ${white}— Цифровая криминалистика${reset}"
+    echo -e "  ${green}13${reset}) ${red}🚩${reset} CTF Tools               ${white}— Инструменты для CTF${reset}"
+    echo -e "  ${green}14${reset}) ${yellow}💻${reset} Development             ${white}— Инструменты разработчика${reset}"
     echo ""
     echo -e "  ${bold}${white}─────────────────────────────────────────────────────────────────────────${reset}"
     echo ""
@@ -1257,7 +1424,7 @@ show_main_menu() {
 
     # Обработка выбора
     case $use in
-        1|2|3|4|5|6|7|8|9)
+        1|2|3|4|5|6|7|8|9|10|11|12|13|14)
             confirm_and_install "$use"
             ;;
         [Pp])
