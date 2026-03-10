@@ -6,6 +6,29 @@
 
 ---
 
+## [3.3] - 2026-03-11
+
+### ✨ Новые возможности v3.3
+
+#### Bluetooth Tools (опция 15)
+
+**📶 Bluetooth Tools** — Работа с Bluetooth:
+- **Основные инструменты:** bluez, bluetoothctl, bluedevil, pulseaudio-bluetooth
+- **Сканирование и разведка:** btscanner, ubertooth, gr-bluetooth
+- **Безопасность и тестирование:** blueranger, redfang, l2ping
+- **OBEX (передача файлов):** obexftp, obexfs, obexd
+
+**🔧 Возможности:**
+- Сканирование Bluetooth устройств
+- Сопряжение и подключение устройств
+- Передача файлов через OBEX
+- Тестирование безопасности Bluetooth
+- L2CAP пинг для диагностики
+
+**📝 Примечание:** Требуется root и Bluetooth адаптер
+
+---
+
 ## [3.2] - 2026-03-11
 
 ### ✨ Новые возможности v3.2
