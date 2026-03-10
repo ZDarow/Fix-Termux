@@ -186,6 +186,89 @@ check_compatibility() {
 }
 
 ################################################################################
+# АВТО-ОБНОВЛЕНИЯ
+################################################################################
+
+check_for_updates() {
+    echo -e "${cyan}🔄 Проверка обновлений...${reset}"
+
+    local repo_url="https://raw.githubusercontent.com/ZDarow/Fix-Termux/master/Fix-Termux.sh"
+    local temp_file="/tmp/fix-termux-check.sh"
+
+    # Загрузка последней версии
+    if curl -sL "$repo_url" -o "$temp_file" 2>/dev/null; then
+        local remote_version=$(grep "^VERSION=" "$temp_file" 2>/dev/null | head -1 | cut -d'=' -f2 | tr -d '"')
+
+        # Если VERSION не найден, пробуем альтернативный вариант
+        if [ -z "$remote_version" ]; then
+            remote_version=$(grep "Версия:" "$temp_file" 2>/dev/null | head -1 | awk '{print $NF}')
+        fi
+
+        if [ -n "$remote_version" ]; then
+            echo -e "  ${green}✓${reset} Текущая версия: ${bold}${VERSION}${reset}"
+            echo -e "  ${green}✓${reset} Доступная версия: ${bold}${remote_version}${reset}"
+
+            # Сравнение версий
+            if [ "$remote_version" != "$VERSION" ]; then
+                echo ""
+                echo -e "${yellow}📦 Доступно обновление!${reset}"
+                echo -ne "${green}   Установить? [y/N]: ${reset}"
+                read confirm
+
+                if [[ "$confirm" =~ ^[Yy]$ ]]; then
+                    install_update "$temp_file"
+                else
+                    echo -e "${cyan}❌ Отменено пользователем${reset}"
+                fi
+            else
+                echo -e "${green}✅ Установлена последняя версия${reset}"
+            fi
+        else
+            echo -e "${yellow}⚠️  Не удалось определить версию${reset}"
+        fi
+        rm -f "$temp_file"
+    else
+        echo -e "${red}❌ Ошибка подключения к репозиторию${reset}"
+    fi
+}
+
+install_update() {
+    local temp_file="$1"
+
+    echo -e "${bold}${blue}📦 Установка обновления...${reset}"
+    echo ""
+
+    # Создание backup перед обновлением
+    if [ "$ENABLE_BACKUP" = true ]; then
+        create_backup
+    fi
+
+    # Копирование новой версии
+    local script_path="$(readlink -f "${BASH_SOURCE[0]}")"
+    echo -ne "  Копирование... "
+    if cp "$temp_file" "$script_path" 2>/dev/null; then
+        echo -e "${green}✓${reset}"
+        echo ""
+        echo -e "${green}✅ Обновление установлено!${reset}"
+        echo -e "${white}   Перезапустите скрипт для применения изменений.${reset}"
+        log_success "Обновление установлено: $VERSION → (новая версия)"
+
+        # Предложение перезапуска
+        echo ""
+        echo -ne "${yellow}Перезапустить скрипт? [y/N]: ${reset}"
+        read restart
+
+        if [[ "$restart" =~ ^[Yy]$ ]]; then
+            exec bash "$script_path"
+        fi
+    else
+        echo -e "${red}✗${reset}"
+        echo -e "${red}❌ Ошибка установки обновления${reset}"
+        log_error "Ошибка установки обновления"
+    fi
+}
+
+################################################################################
 # УТИЛИТЫ
 ################################################################################
 
@@ -1159,6 +1242,7 @@ show_main_menu() {
     echo -e "  ${bold}${white}─────────────────────────────────────────────────────────────────────────${reset}"
     echo ""
     echo -e "  ${blue}📦${reset} ${cyan}P${reset}) Профили установки           ${white}— Minimal, Standard, Full, Pentest${reset}"
+    echo -e "  ${green}🔄${reset} ${cyan}U${reset}) Проверить обновления      ${white}— Авто-обновление скрипта${reset}"
     echo ""
     echo -e "  ${bold}${white}─────────────────────────────────────────────────────────────────────────${reset}"
     echo ""
@@ -1178,6 +1262,9 @@ show_main_menu() {
             ;;
         [Pp])
             show_profiles_menu
+            ;;
+        [Uu])
+            check_for_updates
             ;;
         [Ss])
             show_settings
