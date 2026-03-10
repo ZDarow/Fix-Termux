@@ -186,8 +186,123 @@ check_compatibility() {
 }
 
 ################################################################################
-# АВТО-ОБНОВЛЕНИЯ
+# ЭКСПОРТ/ИМПОРТ НАСТРОЕК (JSON)
 ################################################################################
+
+export_settings() {
+    local export_file="$HOME/fix-termux-settings-$(date +%Y%m%d-%H%M%S).json"
+
+    echo -e "${bold}${blue}📤 Экспорт настроек...${reset}"
+    echo ""
+
+    # Создание JSON файла
+    cat > "$export_file" << EOF
+{
+    "version": "$VERSION",
+    "exported_at": "$(date -Iseconds)",
+    "settings": {
+        "DRY_RUN": $DRY_RUN,
+        "AUTO_CONFIRM": $AUTO_CONFIRM,
+        "ENABLE_BACKUP": $ENABLE_BACKUP
+    },
+    "system": {
+        "termux_version": "$(pkg --version 2>&1 | head -1)",
+        "android_version": "$(getprop ro.build.version.release 2>/dev/null || echo 'unknown')",
+        "android_sdk": "$(getprop ro.build.version.sdk 2>/dev/null || echo 'unknown')"
+    }
+}
+EOF
+
+    if [ -f "$export_file" ]; then
+        echo -e "${green}✅ Настройки экспортированы!${reset}"
+        echo -e "${white}   Файл: ${bold}${export_file}${reset}"
+        log_success "Настройки экспортированы: $export_file"
+
+        # Показать содержимое
+        echo ""
+        echo -e "${cyan}📄 Содержимое:${reset}"
+        cat "$export_file"
+        echo ""
+    else
+        echo -e "${red}❌ Ошибка экспорта настроек${reset}"
+        log_error "Ошибка экспорта настроек"
+    fi
+}
+
+import_settings() {
+    echo -e "${bold}${blue}📥 Импорт настроек...${reset}"
+    echo ""
+
+    # Поиск последнего файла настроек
+    local import_file=$(ls -t $HOME/fix-termux-settings-*.json 2>/dev/null | head -1)
+
+    if [ -z "$import_file" ] || [ ! -f "$import_file" ]; then
+        echo -e "${red}❌ Файлы настроек не найдены${reset}"
+        echo -e "${white}   Сначала экспортируйте настройки (опция 5 в настройках)${reset}"
+        return 1
+    fi
+
+    echo -e "${white}   Найден файл: ${bold}${import_file}${reset}"
+    echo ""
+    echo -ne "${green}   Импорт настроек? [y/N]: ${reset}"
+    read confirm
+
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        echo -e "${cyan}❌ Отменено пользователем${reset}"
+        return 0
+    fi
+
+    # Чтение настроек из JSON (простой парсинг)
+    local dry_run=$(grep '"DRY_RUN"' "$import_file" | grep -o 'true\|false')
+    local auto_confirm=$(grep '"AUTO_CONFIRM"' "$import_file" | grep -o 'true\|false')
+    local enable_backup=$(grep '"ENABLE_BACKUP"' "$import_file" | grep -o 'true\|false')
+
+    # Применение настроек
+    [ "$dry_run" = "true" ] && DRY_RUN=true || DRY_RUN=false
+    [ "$auto_confirm" = "true" ] && AUTO_CONFIRM=true || AUTO_CONFIRM=false
+    [ "$enable_backup" = "true" ] && ENABLE_BACKUP=true || ENABLE_BACKUP=false
+
+    echo ""
+    echo -e "${green}✅ Настройки импортированы!${reset}"
+    echo ""
+    echo -e "${white}   DRY_RUN:       ${DRY_RUN}${reset}"
+    echo -e "${white}   AUTO_CONFIRM:  ${AUTO_CONFIRM}${reset}"
+    echo -e "${white}   ENABLE_BACKUP: ${ENABLE_BACKUP}${reset}"
+    log_success "Настройки импортированы: $import_file"
+}
+
+show_import_export_menu() {
+    echo ""
+    echo -e "${bold}${white}╭────────────────────────────────────────────────────────────────────────────╮${reset}"
+    echo -e "${bold}${white}│${reset}  ${yellow}💾 ЭКСПОРТ/ИМПОРТ НАСТРОЕК${reset}                                          ${bold}${white}│${reset}"
+    echo -e "${bold}${white}╰────────────────────────────────────────────────────────────────────────────╯${reset}"
+    echo ""
+    echo -e "  ${green}1${reset}) ${cyan}📤${reset} Экспорт настроек    ${white}— Сохранить в JSON${reset}"
+    echo -e "  ${green}2${reset}) ${cyan}📥${reset} Импорт настроек     ${white}— Загрузить из JSON${reset}"
+    echo ""
+    echo -e "  ${white}Выберите действие:${reset}"
+    echo -ne "  [1/2/B (назад)]: "
+    read choice
+
+    case $choice in
+        1)
+            export_settings
+            ;;
+        2)
+            import_settings
+            ;;
+        [Bb])
+            return
+            ;;
+        *)
+            echo -e "${red}❌ Неверный выбор${reset}"
+            ;;
+    esac
+
+    echo ""
+    echo -ne "${yellow}⏎ Нажмите Enter для продолжения...${reset}"
+    read
+}
 
 check_for_updates() {
     echo -e "${cyan}🔄 Проверка обновлений...${reset}"
@@ -1261,9 +1376,10 @@ show_settings() {
     echo -e "  ${cyan}2${reset}) Авто-подтверждение:           ${yellow}${AUTO_CONFIRM}${reset}"
     echo -e "  ${cyan}3${reset}) Backup перед установкой:      ${yellow}${ENABLE_BACKUP}${reset}"
     echo -e "  ${cyan}4${reset}) 🔄 Восстановление из backup   ${white}— Откат изменений${reset}"
+    echo -e "  ${cyan}5${reset}) 💾 Экспорт/Импорт настроек    ${white}— JSON конфигурация${reset}"
     echo ""
     echo -e "  ${white}Выберите настройку для переключения:${reset}"
-    echo -ne "  [1/2/3/4/B (назад)]: "
+    echo -ne "  [1/2/3/4/5/B (назад)]: "
     read setting
 
     case $setting in
@@ -1299,6 +1415,9 @@ show_settings() {
             ;;
         4)
             list_backups
+            ;;
+        5)
+            show_import_export_menu
             ;;
         [Bb])
             return
