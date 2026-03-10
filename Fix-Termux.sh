@@ -972,6 +972,42 @@ install_development() {
     log_success "=== Завершена установка: Development Tools ==="
 }
 
+install_bluetooth_tools() {
+    log_info "=== Начало установки: Bluetooth Tools ==="
+
+    echo -e "${bold}${blue}📋 Установка инструментов для работы с Bluetooth...${reset}"
+    echo ""
+
+    echo -e "${yellow}📡 Основные Bluetooth инструменты:${reset}"
+    install_package "bluez" "pkg"
+    install_package "bluetoothctl" "pkg"
+    install_package "bluedevil" "pkg"
+    install_package "pulseaudio-bluetooth" "pkg"
+
+    echo ""
+    echo -e "${yellow}🔍 Сканирование и разведка:${reset}"
+    install_package "btscanner" "pkg"
+    install_package "ubertooth" "pkg"
+    run_command "pip install gr-bluetooth" "Установка gr-bluetooth"
+
+    echo ""
+    echo -e "${yellow}🔓 Безопасность и тестирование:${reset}"
+    install_package "blueranger" "pkg"
+    install_package "redfang" "pkg"
+    install_package "l2ping" "pkg"
+
+    echo ""
+    echo -e "${yellow}📦 OBEX (передача файлов):${reset}"
+    install_package "obexftp" "pkg"
+    install_package "obexfs" "pkg"
+
+    echo ""
+    echo -e "${green}✅ Bluetooth Tools установлены!${reset}"
+    echo -e "${yellow}📝 Примечание: Требуется root и Bluetooth адаптер${reset}"
+    echo -e "${white}   Запуск: bluetoothctl${reset}"
+    log_success "=== Завершена установка: Bluetooth Tools ==="
+}
+
 ################################################################################
 # ПРОФИЛИ УСТАНОВКИ
 ################################################################################
@@ -1300,6 +1336,7 @@ confirm_and_install() {
         12) option_name="Forensics" ;;
         13) option_name="CTF Tools" ;;
         14) option_name="Development Tools" ;;
+        15) option_name="Bluetooth Tools" ;;
     esac
 
     # Если включён режим авто-подтверждения, пропускаем
@@ -1355,6 +1392,7 @@ run_installation() {
         12) install_forensics ;;
         13) install_ctf_tools ;;
         14) install_development ;;
+        15) install_bluetooth_tools ;;
     esac
 
     # Показ статистики после установки
@@ -1524,6 +1562,7 @@ show_main_menu() {
     echo -e "  ${green}12${reset}) ${cyan}🔬${reset} Forensics               ${white}— Цифровая криминалистика${reset}"
     echo -e "  ${green}13${reset}) ${red}🚩${reset} CTF Tools               ${white}— Инструменты для CTF${reset}"
     echo -e "  ${green}14${reset}) ${yellow}💻${reset} Development             ${white}— Инструменты разработчика${reset}"
+    echo -e "  ${green}15${reset}) ${blue}📶${reset} Bluetooth Tools          ${white}— Работа с Bluetooth${reset}"
     echo ""
     echo -e "  ${bold}${white}─────────────────────────────────────────────────────────────────────────${reset}"
     echo ""
@@ -1543,7 +1582,7 @@ show_main_menu() {
 
     # Обработка выбора
     case $use in
-        1|2|3|4|5|6|7|8|9|10|11|12|13|14)
+        1|2|3|4|5|6|7|8|9|10|11|12|13|14|15)
             confirm_and_install "$use"
             ;;
         [Pp])

@@ -203,3 +203,12 @@ DEVELOPMENT=(
     "docker" "kubectl" "helm"
     "code-server" "termux-api"
 )
+
+# Опция 15: Bluetooth Tools
+BLUETOOTH_TOOLS=(
+    "bluez" "bluetoothctl" "bluedevil"
+    "btscanner" "ubertooth" "gr-bluetooth"
+    "blueranger" "redfang" "bluesnarfer"
+    "obexftp" "obexfs" "obexd"
+    "bluebugger" "bluespam" "l2ping"
+)
