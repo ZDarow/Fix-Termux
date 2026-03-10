@@ -6,6 +6,31 @@
 
 ---
 
+## [2.1] - 2026-03-11
+
+### ✨ Новые возможности
+- **Опция 8: Web Scraping Tools** — инструменты для парсинга веб-сайтов
+  - Python: requests, beautifulsoup4, selenium, scrapy, httpx, aiohttp
+  - Node.js: puppeteer, cheerio
+- **Опция 9: WiFi Tools** — аудит беспроводных сетей
+  - aircrack-ng, reaver, bully, pixiewps
+  - hashcat, cowpatty, wifite, kismet
+  - macchanger, iw, wireless-tools
+- **Конфигурация** — вынесение пакетов в `config.sh`
+  - Массивы пакетов для каждой опции
+  - Легкая кастомизация без изменения скрипта
+
+### 🔧 Исправления
+- Реализована установка Fedora (опция 7)
+- Добавлена проверка root для WiFi инструментов
+
+### 📚 Документация
+- Добавлен LICENSE (MIT License)
+- Добавлен .gitignore
+- Обновлены версии в скриптах
+
+---
+
 ## [2.0] - 2026-03-11
 
 ### ✨ Новые возможности
