@@ -6,6 +6,43 @@
 
 ---
 
+## [3.1] - 2026-03-11
+
+### ✨ Новые возможности v3.1
+
+#### Новые инструменты (опции 10-14)
+
+**10) 🔍 Reverse Engineering** — Реверс-инжиниринг:
+- radare2, binwalk, gdb, ltrace, strace
+- apktool, objdump
+- r2frida, GEF (через pip)
+
+**11) 🎭 Social Engineering** — Социальная инженерия:
+- setoolkit, maltego, theharvester, recon-ng
+- SET (Social Engineer Toolkit)
+- Gophish
+
+**12) 🔬 Forensics** — Цифровая криминалистика:
+- sleuthkit, bulk-extractor, foremost, scalpel
+- exiftool, binwalk
+- wireshark, tcpdump, tshark
+- Volatility (через pip)
+
+**13) 🚩 CTF Tools** — Инструменты для CTF:
+- Pwntools, ROPgadget, Ropper, seccomp-tools
+- john, hashcat, hydra
+- sqlmap, nikto, gobuster, dirb
+- wireshark, ncat, netcat
+
+**14) 💻 Development** — Инструменты разработчика:
+- git, subversion, mercurial
+- vim, neovim, emacs, nano
+- python, python3, pip, ruby, golang, nodejs, npm
+- clang, gcc, make, cmake
+- yarn, bundler
+
+---
+
 ## [3.0] - 2026-03-11
 
 ### ✨ Новые возможности v3.0
