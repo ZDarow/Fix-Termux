@@ -204,21 +204,19 @@ DEVELOPMENT=(
     "code-server" "termux-api"
 )
 
-# Опция 15: Bluetooth Tools
+# Опция 15: Bluetooth Tools (обновлённый - реальные пакеты Termux)
 BLUETOOTH_TOOLS=(
-    "bluez" "bluetoothctl" "bluedevil"
-    "btscanner" "ubertooth" "gr-bluetooth"
-    "blueranger" "redfang" "bluesnarfer"
-    "obexftp" "obexfs" "obexd"
-    "bluebugger" "bluespam" "l2ping"
+    "qt6-qtconnectivity"
+    "bluez"
+    "bluez-repo"
 )
 
-# Опция 16: Bluetooth LE (Low Energy) Tools
+# Опция 16: Bluetooth LE (Low Energy) Tools - Python библиотеки
 BLUETOOTH_LE_TOOLS=(
-    "gatttool" "hcitool" "btmgmt"
-    "bluez-hid2hci" "bluez-deprecated"
-    "bleah" "gattlib" "pygatt"
-    "bluepy" "bleak" "bleson"
-    "nordic-semiconductor-nrfutil" "microbit"
-    "espruino" "ruuvi-firmware"
+    "bleak"
+    "bluepy"
+    "pygatt"
+    "gattlib"
+    "bleson"
+    "bt-prox"
 )

@@ -977,34 +977,33 @@ install_bluetooth_tools() {
 
     echo -e "${bold}${blue}📋 Установка инструментов для работы с Bluetooth...${reset}"
     echo ""
+    echo -e "${yellow}⚠️  Внимание: В Termux ограничена поддержка Bluetooth${reset}"
+    echo -e "${white}   Требуется root и Bluetooth адаптер${reset}"
+    echo ""
 
-    echo -e "${yellow}📡 Основные Bluetooth инструменты:${reset}"
-    install_package "bluez" "pkg"
-    install_package "bluetoothctl" "pkg"
-    install_package "bluedevil" "pkg"
-    install_package "pulseaudio-bluetooth" "pkg"
+    echo -e "${yellow}📦 Основные пакеты:${reset}"
+    install_package "qt6-qtconnectivity" "pkg"
 
     echo ""
-    echo -e "${yellow}🔍 Сканирование и разведка:${reset}"
-    install_package "btscanner" "pkg"
-    install_package "ubertooth" "pkg"
-    run_command "pip install gr-bluetooth" "Установка gr-bluetooth"
+    echo -e "${yellow}🔧 BlueZ (требуется root):${reset}"
+    echo -ne "  Проверка root... "
+    if [ "$(id -u)" -eq 0 ]; then
+        echo -e "${green}✓${reset}"
+        run_command "pkg install bluez-repo" "Установка bluez-repo"
+        run_command "pkg install bluez" "Установка bluez"
+    else
+        echo -e "${red}✗${reset} (root не доступен)"
+        echo -e "${white}   BlueZ требует root-доступа${reset}"
+    fi
 
     echo ""
-    echo -e "${yellow}🔓 Безопасность и тестирование:${reset}"
-    install_package "blueranger" "pkg"
-    install_package "redfang" "pkg"
-    install_package "l2ping" "pkg"
-
-    echo ""
-    echo -e "${yellow}📦 OBEX (передача файлов):${reset}"
-    install_package "obexftp" "pkg"
-    install_package "obexfs" "pkg"
+    echo -e "${yellow}🐍 Python BLE библиотеки:${reset}"
+    run_command "pip install bleak" "Установка bleak (кроссплатформенный BLE)"
+    run_command "pip install pygatt" "Установка pygatt"
 
     echo ""
     echo -e "${green}✅ Bluetooth Tools установлены!${reset}"
-    echo -e "${yellow}📝 Примечание: Требуется root и Bluetooth адаптер${reset}"
-    echo -e "${white}   Запуск: bluetoothctl${reset}"
+    echo -e "${white}   Запуск: python3 -c 'import bleak; print(bleak.__version__)'${reset}"
     log_success "=== Завершена установка: Bluetooth Tools ==="
 }
 
@@ -1013,24 +1012,20 @@ install_bluetooth_le_tools() {
 
     echo -e "${bold}${blue}📋 Установка инструментов для работы с Bluetooth Low Energy...${reset}"
     echo ""
+    echo -e "${yellow}⚠️  Внимание: BLE требует Linux kernel с поддержкой Bluetooth${reset}"
+    echo -e "${white}   В Termux работает только через Python библиотеки${reset}"
+    echo ""
 
-    echo -e "${yellow}📡 Основные BLE инструменты:${reset}"
-    install_package "gatttool" "pkg"
-    install_package "hcitool" "pkg"
-    install_package "btmgmt" "pkg"
-    install_package "bluez-deprecated" "pkg"
+    echo -e "${yellow}🐍 Python BLE библиотеки (основное):${reset}"
+    run_command "pip install bleak" "Установка bleak (кроссплатформенный, рекомендуется)"
+    run_command "pip install bluepy" "Установка bluepy (Linux)"
+    run_command "pip install pygatt" "Установка pygatt (через pip)"
 
     echo ""
-    echo -e "${yellow}🔍 BLE сканеры и анализаторы:${reset}"
-    install_package "bleah" "pkg"
+    echo -e "${yellow}🐍 Дополнительные BLE библиотеки:${reset}"
     run_command "pip install gattlib" "Установка gattlib"
-    run_command "pip install pygatt" "Установка pygatt"
-
-    echo ""
-    echo -e "${yellow}🐍 Python BLE библиотеки:${reset}"
-    run_command "pip install bluepy" "Установка bluepy"
-    run_command "pip install bleak" "Установка bleak (кроссплатформенный)"
     run_command "pip install bleson" "Установка bleson"
+    run_command "pip install bt-prox" "Установка bt-prox"
 
     echo ""
     echo -e "${yellow}📦 Специализированные инструменты:${reset}"
@@ -1038,15 +1033,14 @@ install_bluetooth_le_tools() {
     run_command "pip install microbit" "Установка microbit (BBC micro:bit)"
 
     echo ""
-    echo -e "${yellow}🔧 Прошивки и утилиты:${reset}"
-    echo -ne "  Установка Espruino... "
-    run_command "npm install -g espruino" "Установка Espruino IDE" 2>/dev/null || echo -e "${yellow}⊘${reset}"
-
-    echo ""
     echo -e "${green}✅ Bluetooth LE Tools установлены!${reset}"
-    echo -e "${yellow}📝 Примечание: Требуется root и BLE адаптер${reset}"
-    echo -e "${white}   Запуск: gatttool -I (интерактивный режим)${reset}"
-    echo -e "${white}   Сканирование: hcitool lescan${reset}"
+    echo ""
+    echo -e "${white}📖 Примеры использования:${reset}"
+    echo -e "${cyan}   # Сканирование BLE устройств:${reset}"
+    echo -e "${white}   python3 -c 'import asyncio; from bleak import BleakScanner; asyncio.run(BleakScanner.discover())'${reset}"
+    echo ""
+    echo -e "${cyan}   # Проверка установки:${reset}"
+    echo -e "${white}   python3 -c 'import bleak; print(f\"bleak v{bleak.__version__}\")'${reset}"
     log_success "=== Завершена установка: Bluetooth LE Tools ==="
 }
 
