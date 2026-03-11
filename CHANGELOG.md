@@ -6,6 +6,47 @@
 
 ---
 
+## [3.5] - 2026-03-11
+
+### 🐛 Исправления v3.5
+
+#### Bluetooth Tools — Реалистичная поддержка
+
+**Проблема:**
+- Большинство Bluetooth пакетов недоступны в Termux
+- Установщики выдавали множество ошибок
+
+**Решение:**
+- ✅ Удалены несуществующие пакеты
+- ✅ Обновлены BLUETOOTH_TOOLS (3 пакета)
+- ✅ Обновлены BLUETOOTH_LE_TOOLS (8 Python библиотек)
+- ✅ install_bluetooth_tools() — реалистичная установка
+- ✅ install_bluetooth_le_tools() — упор на Python BLE
+
+**📦 Доступные пакеты:**
+- **qt6-qtconnectivity** — Qt Bluetooth API
+- **bluez** — требует root (опционально)
+- **bleak** — кроссплатформенный BLE (рекомендуется)
+- **bluepy, pygatt, gattlib, bleson, bt-prox** — Python BLE
+- **nrfutil** — Nordic SDK
+- **microbit** — BBC micro:bit
+
+**⚠️ Ограничения Termux:**
+- Нет полноценной поддержки Bluetooth
+- BlueZ требует root-доступа
+- BLE работает через Python библиотеки
+
+**📖 Примеры использования:**
+```bash
+# Проверка установки
+python3 -c 'import bleak; print(bleak.__version__)'
+
+# Сканирование BLE устройств
+python3 -c 'import asyncio; from bleak import BleakScanner; asyncio.run(BleakScanner.discover())'
+```
+
+---
+
 ## [3.4] - 2026-03-11
 
 ### ✨ Новые возможности v3.4
