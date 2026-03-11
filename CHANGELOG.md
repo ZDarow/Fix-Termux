@@ -6,6 +6,84 @@
 
 ---
 
+## [3.6] - 2026-03-11
+
+### ✨ Новые возможности v3.6
+
+#### Fix-Termux Launcher — Меню Запуска Инструментов
+
+**📦 Новый скрипт:** `launcher.sh`
+
+**🎯 Возможности:**
+- Древовидное интуитивное меню (аналогично установочному)
+- 8 разделов инструментов
+- Проверка установленных инструментов (✅/❌)
+- Интерактивный запуск с параметрами
+- Возврат в меню после выполнения
+
+**📂 Разделы меню:**
+
+| № | Раздел | Инструменты |
+|---|--------|-------------|
+| **1** | 📱 Термукс и Разработка | Python, Node.js, Git, Vim, Nano, Clang, Ruby, Go, PHP, MariaDB, PostgreSQL |
+| **2** | 🔓 Pentesting | Nmap, SQLMap, Hydra, John, Metasploit, Nikto, WPScan |
+| **3** | 📡 Сетевые | Wireshark, TCPDump, Tor, Netcat, Ncat, Curl, Wget |
+| **4** | 🔬 Forensics | ExifTool, Binwalk, Foremost, SleuthKit |
+| **5** | 🚩 CTF | GDB, ROPgadget, Hashcat, Gobuster, Dirb, Pwntools |
+| **6** | 📶 Bluetooth/BLE | BLE сканирование, BLE подключение, PyGATT |
+| **7** | 🕸️ Web Scraping | Requests, BeautifulSoup, Scrapy, Curl |
+| **8** | 🛠️ Системные | Htop, Tree, MC, Figlet, CMatrix, JQ |
+
+**🔧 Особенности:**
+- ✅ Проверка доступности команд перед запуском
+- 🔧 Подстановка параметров (IP, URL, файлы)
+- ↩️ Возврат в меню после выполнения
+- ⌨️ Горячие клавиши: `B` (назад), `0` (выход)
+- 🎨 Красивое оформление с цветами и иконками
+
+**📖 Использование:**
+```bash
+cd ~/Fix-Termux
+chmod +x launcher.sh
+bash launcher.sh
+```
+
+**📋 Примеры запуска:**
+
+**Nmap:**
+```
+🔓 PENTESTING ИНСТРУМЕНТЫ
+  ✅ 1) Nmap (сканирование сети)
+  
+Выберите инструмент: 1
+Цель (IP/домен): 192.168.1.1
+🚀 Запуск: nmap -sC -sV 192.168.1.1
+```
+
+**BLE Сканирование:**
+```
+📶 BLUETOOTH / BLE
+  ✅ 1) BLE Сканирование (Bleak)
+  
+Выберите инструмент: 1
+🔍 Сканирование...
+  Xiaomi Band: AA:BB:CC:DD:EE:FF
+  iPhone: 11:22:33:44:55:66
+Найдено: 2 устройств
+```
+
+**ExifTool:**
+```
+🔬 FORENSICS (КРИМИНАЛИСТИКА)
+  ✅ 1) ExifTool (метаданные)
+  
+Выберите инструмент: 1
+Файл: photo.jpg
+🚀 Запуск: exiftool photo.jpg
+```
+
+---
+
 ## [3.5] - 2026-03-11
 
 ### 🐛 Исправления v3.5
