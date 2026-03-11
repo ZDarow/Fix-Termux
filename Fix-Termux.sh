@@ -1607,6 +1607,7 @@ show_main_menu() {
     echo ""
     echo -e "  ${blue}📦${reset} ${cyan}P${reset}) Профили установки           ${white}— Minimal, Standard, Full, Pentest${reset}"
     echo -e "  ${green}🔄${reset} ${cyan}U${reset}) Проверить обновления      ${white}— Авто-обновление скрипта${reset}"
+    echo -e "  ${cyan}🚀${reset} ${cyan}L${reset}) Запустить Launcher         ${white}— Меню инструментов${reset}"
     echo ""
     echo -e "  ${bold}${white}─────────────────────────────────────────────────────────────────────────${reset}"
     echo ""
@@ -1629,6 +1630,11 @@ show_main_menu() {
             ;;
         [Uu])
             check_for_updates
+            ;;
+        [Ll])
+            echo -e "${CYAN}🚀 Запуск Launcher...${reset}"
+            sleep 1
+            exec bash launcher.sh
             ;;
         [Ss])
             show_settings
